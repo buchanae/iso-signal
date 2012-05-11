@@ -5,13 +5,13 @@
 #include <api/BamReader.h>
 
 #include "Index.h"
-#include "Reader.h"
 #include "Feature.h"
 
 #include "Alignment.h"
 #include "coverage.h"
 #include "JunctionIndex.h"
 #include "StackReader.h"
+#include "helpers.h"
 
 #define VERSION "0.1"
 
@@ -22,9 +22,6 @@ using std::cout;
 using std::endl;
 using std::string;
 using std::vector;
-
-void getValidAlignmentsToFeature(Feature&, BamTools::BamReader&, JunctionIndex&,
-                                 vector<Alignment>&);
 
 int main (int argc, char* argv[])
 {
@@ -63,6 +60,7 @@ int main (int argc, char* argv[])
     }
 
     // TODO: ensure all reference data for BAM files are the same
+    // TODO needed? do one coverage file at a time?
 
     // open GFF reference file
     std::ifstream gff_input_stream(gff_file_path.c_str());
@@ -72,15 +70,27 @@ int main (int argc, char* argv[])
         exit(0);
     }
 
-    // read all features from GFF reference
-    vector<Feature> all_features;
-    GFF::Reader::readAllAndLinkChildren(gff_input_stream, all_features);
+    vector<Feature> all;
+    vector<Feature> genes;
+    vector<Feature> transcripts;
+    getGenesAndTranscriptsFromGFF(gff_input_stream, all, genes, transcripts);
 
-    // index all features from GFF reference by type
-    TypeIndex types;
-    types.add(all_features.begin(), all_features.end());
+    cerr << "Searching reference for splice junctions" << endl;
 
     JunctionIndex junction_index;
+    vector<string> exon_types;
+    exon_types.push_back("exon");
+    exon_types.push_back("pseudogenic_exon");
+
+    for (vector<Feature>::iterator it = transcripts.begin(); 
+         it != transcripts.end(); ++it)
+    {
+        Feature cur = *it;
+        vector<Feature> juncs;
+        cur.spliceJunctions(juncs, exon_types);
+        // TODO optimize to add directly to index
+        junction_index.add(juncs.begin(), juncs.end());
+    }
 
     // load splice junctions from stack files
     for (vector<string>::iterator it = stack_file_paths.begin();
@@ -97,11 +107,6 @@ int main (int argc, char* argv[])
             junction_index.add(j);
         }
     }
-
-    vector<Feature> genes;
-    types.type("gene", genes);
-    types.type("pseudogene", genes);
-    types.type("transposable_element_gene", genes);
 
     int count = 0;
 
@@ -147,36 +152,4 @@ int main (int argc, char* argv[])
     bam_file2.Close();
 
     return 0;
-}
-
-// TODO note that splice junction alignments are only valid if they're in junctions arg
-void getValidAlignmentsToFeature(Feature& feature,
-                                 BamTools::BamReader& reader,
-                                 JunctionIndex& junction_index,
-                                 vector<Alignment>& alignments)
-{
-    int ref_ID = reader.GetReferenceID(feature.seqid);
-
-    BamTools::BamRegion region;
-    region = BamTools::BamRegion(ref_ID, feature.start, ref_ID, feature.end);
-
-    reader.SetRegion(region);
-
-    Alignment al;
-    while (reader.GetNextAlignment(al))
-    {
-        string ref_name = reader.GetReferenceData().at(al.RefID).RefName;
-
-        Feature junction;
-        junction.seqid = ref_name;
-        if (al.getJunction(junction))
-        {
-            if (junction_index.contains(junction))
-            {
-                alignments.push_back(al);
-            }
-        } else {
-            alignments.push_back(al);
-        }
-    }
 }

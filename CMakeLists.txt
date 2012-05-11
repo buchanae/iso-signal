@@ -12,6 +12,7 @@ set(
     src/StackReader.cpp
     src/Alignment.cpp
     src/coverage.cpp
+    src/helpers.cpp
 )
 set(
     LIBS
@@ -31,7 +32,16 @@ if( build_tests )
       tests/StackReader.cpp
       tests/Alignment.cpp
       tests/coverage.cpp
+      tests/helpers.cpp
     )
+    add_custom_command(
+        OUTPUT dummies
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+            "${CMAKE_CURRENT_SOURCE_DIR}/tests/dummies"
+            "${CMAKE_CURRENT_BINARY_DIR}/dummies"
+            DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/tests/dummies"
+    )
+    add_custom_target(TestDummies ALL DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/dummies")
     include_directories(
         libs/gmock/include
         libs/gmock/gtest/include
