@@ -1,8 +1,10 @@
 #include <iostream>
 #include <vector>
 
+#include <boost/tokenizer.hpp>
 #include <tclap/CmdLine.h>
 #include <api/BamReader.h>
+#include <api/BamWriter.h>
 
 #include "Index.h"
 #include "Reader.h"
@@ -62,7 +64,13 @@ int main (int argc, char* argv[])
         exit(0);
     }
 
+    BamTools::BamWriter AlignmentsOut;
+    AlignmentsOut.Open("new_alignments.bam", bam_file1.GetHeader(), 
+                       bam_file1.GetReferenceData());
+
     // TODO: ensure all reference data for BAM files are the same
+
+    cerr << "Loading GFF reference" << endl;
 
     // open GFF reference file
     std::ifstream gff_input_stream(gff_file_path.c_str());
@@ -76,11 +84,53 @@ int main (int argc, char* argv[])
     vector<Feature> all_features;
     GFF::Reader::readAllAndLinkChildren(gff_input_stream, all_features);
 
+    cerr << "Indexing reference features by type" << endl;
+
     // index all features from GFF reference by type
     TypeIndex types;
     types.add(all_features.begin(), all_features.end());
 
     JunctionIndex junction_index;
+
+    cerr << "Searching reference for splice junctions" << endl;
+
+    vector<Feature> transcripts;
+    types.type("mRNA", transcripts);
+    types.type("mRNA_TE_gene", transcripts);
+    types.type("ncRNA", transcripts);
+    types.type("miRNA", transcripts);
+    types.type("snoRNA", transcripts);
+    types.type("snRNA", transcripts);
+    types.type("rRNA", transcripts);
+    types.type("tRNA", transcripts);
+    types.type("pseudogenic_transcript", transcripts);
+
+    vector<string> exon_types;
+    exon_types.push_back("exon");
+    exon_types.push_back("pseudogenic_exon");
+
+    for (vector<Feature>::iterator it = transcripts.begin(); 
+         it != transcripts.end(); ++it)
+    {
+        Feature cur = *it;
+        vector<Feature> juncs;
+        cur.spliceJunctions(juncs, exon_types);
+        // TODO optimize to add directly to index
+        junction_index.add(juncs.begin(), juncs.end());
+    }
+
+    /*
+      TODO could be useful to have something to list all splice junctions,
+           so maybe find a place for this to live.
+    vector<Feature> unique_juncs;
+    junction_index.unique(unique_juncs);
+    for (vector<Feature>::iterator iit = unique_juncs.begin();
+         iit != unique_juncs.end(); ++iit)
+    {
+        Feature cur_junc = *iit;
+        cout << cur_junc.seqid << "\t" << cur_junc.start << "\t" << cur_junc.end << endl;
+    }
+    */
 
     // load splice junctions from stack files
     for (vector<string>::iterator it = stack_file_paths.begin();
@@ -92,9 +142,19 @@ int main (int argc, char* argv[])
             cerr << "Error opening stack file: " << *it << endl;
             cerr << "Skipping file." << endl;
         } else {
+
+            int count = 0;
+
+            cerr << "Loading stack file: " << *it << endl;
+
             Feature j;
-            StackReader::getNextFeature(input_stream, j);
-            junction_index.add(j);
+            while (StackReader::getNextFeature(input_stream, j))
+            {
+                count++;
+                junction_index.add(j);
+            }
+
+            cerr << "Loaded " << count << " splice junctions" << endl;
         }
     }
 
@@ -104,6 +164,8 @@ int main (int argc, char* argv[])
     types.type("transposable_element_gene", genes);
 
     int count = 0;
+
+    cerr << "Building coverage for " << genes.size() << " genes" << endl;
 
     for (vector<Feature>::iterator it = genes.begin(); it != genes.end(); ++it)
     {
@@ -117,6 +179,12 @@ int main (int argc, char* argv[])
 
         vector<Alignment> alignments1, alignments2;
         getValidAlignmentsToFeature(feature, bam_file1, local_juncs_index, alignments1);
+        for (vector<Alignment>::iterator it = alignments1.begin();
+             it != alignments1.end(); ++it)
+        {
+            AlignmentsOut.SaveAlignment(*it);
+        }
+
         getValidAlignmentsToFeature(feature, bam_file2, local_juncs_index, alignments2);
 
         vector<int> coverage1, coverage2;
@@ -138,11 +206,10 @@ int main (int argc, char* argv[])
         }
 
         count++;
-
-        if (count % 5 == 0) cerr << "\r" << count;
     }
-    cerr << "\r" << count << endl << "Done." << endl;
+    cerr << "Done." << endl;
 
+    AlignmentsOut.Close();
     bam_file1.Close();
     bam_file2.Close();
 
