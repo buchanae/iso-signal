@@ -27,6 +27,7 @@ class JunctionIndex : public GFF::IndexBase
     public:
         void overlappingFeature(Feature&, std::vector<Feature>&);
         bool contains(Feature&);
+        void unique(std::vector<Feature>&);
 
     private:
         void index(Feature&);

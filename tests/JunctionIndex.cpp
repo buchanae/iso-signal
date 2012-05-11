@@ -72,6 +72,39 @@ TEST(JunctionIndexTest, overlappingFeature)
     }
 
     EXPECT_THAT(sources, WhenSorted(ElementsAre("A", "B")));
+}
 
-    ret.clear();
+TEST(JunctionIndexTest, unique)
+{
+    // JunctionIndex::unique() allows getting all unique junctions in this index
+    Feature f;
+    JunctionIndex index;
+
+    f.seqid = "Chr1";
+    f.source = "A";
+    f.start = 10;
+    f.end = 20;
+
+    index.add(f);
+    // add a duplicate
+    f.source = "B";
+    index.add(f);
+
+    f.source = "C";
+    f.start = 15;
+    index.add(f);
+
+    f.source = "D";
+    f.seqid = "Chr2";
+    index.add(f);
+
+    std::vector<std::string> sources;
+    std::vector<Feature> ret;
+    index.unique(ret);
+
+    for (std::vector<Feature>::iterator it = ret.begin(); it != ret.end(); ++it)
+    {
+        sources.push_back((*it).source);
+    }
+    EXPECT_THAT(sources, WhenSorted(ElementsAre("A", "C", "D")));
 }

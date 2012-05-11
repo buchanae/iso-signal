@@ -41,3 +41,8 @@ bool JunctionIndex::contains(Feature& query)
 {
     return junctions.find(query) != junctions.end();
 }
+
+void JunctionIndex::unique(std::vector<Feature>& juncs)
+{
+    std::copy(junctions.begin(), junctions.end(), std::back_inserter(juncs));
+}
