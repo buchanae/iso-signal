@@ -40,8 +40,8 @@ bool Alignment::getJunction(GFF::Feature& junction)
 
     if (gap_len == 0) return false;
 
-    junction.start = position() + len;
-    junction.end = junction.start + gap_len;
+    junction.start = position() + len - 1;
+    junction.end = junction.start + gap_len + 1;
 
     return true;
 }
