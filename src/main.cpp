@@ -28,14 +28,14 @@ void getValidAlignmentsToFeature(Feature&, BamTools::BamReader&, JunctionIndex&,
 
 int main (int argc, char* argv[])
 {
-    string gff_file_path, input_bam1, input_bam2, stack_file_list;
-    vector<string> stack_files;
+    string gff_file_path, input_bam1, input_bam2;
+    vector<string> stack_file_paths;
 
     try
     {
         TCLAP::CmdLine cmd("Program description", ' ', VERSION);
 
-        TCLAP::ValueArg<string> inputSTACKS("s", "stack-files", "List of stack files", false, "", "stacks1,stacks2,stacks3,etc.", cmd);
+        TCLAP::MultiArg<string> inputSTACKS("s", "stack-file", "Stack file", false, "foo.stacks", cmd);
         TCLAP::ValueArg<string> inputGFF("g", "gff-file", "Input GFF file", true, "", "input_file.gff", cmd);
         TCLAP::ValueArg<string> inputBAM2("2", "bam-file2", "Input BAM file 2", true, "", "input_file2.bam", cmd);
         TCLAP::ValueArg<string> inputBAM1("1", "bam-file1", "Input BAM file 1", true, "", "input_file1.bam", cmd);
@@ -45,24 +45,8 @@ int main (int argc, char* argv[])
         gff_file_path = inputGFF.getValue();
         input_bam1 = inputBAM1.getValue();
         input_bam2 = inputBAM2.getValue();
-        stack_file_list = inputSTACKS.getValue();
+        stack_file_paths = inputSTACKS.getValue();
 
-        // Clean up input file names
-        for (int i = 0; i < stack_files.size(); i++) {
-            if (stack_files.at(i).size()) {
-                bool cont = true;
-                string* val = &stack_files.at(i);
-                while (val->size() && cont) {
-                   if (val->at(0) == ' ') val->erase(0, 1);
-                   else cont = false;
-                }
-                cont = true;
-                while (val->size() && cont) {
-                   if (val->at(val->size() - 1) == ' ') val->erase(val->size() - 1, 1);
-                   else cont = false;
-                }
-            }
-        }
     } catch (TCLAP::ArgException &e) {
         cerr << "Error: " << e.error() << " " << e.argId() << endl;
     }
@@ -99,8 +83,8 @@ int main (int argc, char* argv[])
     JunctionIndex junction_index;
 
     // load splice junctions from stack files
-    for (vector<string>::iterator it = stack_files.begin();
-         it != stack_files.end(); ++it)
+    for (vector<string>::iterator it = stack_file_paths.begin();
+         it != stack_file_paths.end(); ++it)
     {
         std::ifstream input_stream((*it).c_str());
         if (!input_stream.is_open())
