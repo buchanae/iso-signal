@@ -98,7 +98,7 @@ void gen_coverage(vector<int>& coverage, vector<Alignment>& alignments, Feature&
     for (int i = 0; i < total_alignments; i++) {
         Alignment al = alignments.at(i);
 
-        add_coverage(feature, coverage, al.CigarData, al.Position + 1);
+        add_coverage(feature, coverage, al.CigarData, al.position() + 1);
     }
 }
 

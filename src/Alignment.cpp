@@ -5,6 +5,19 @@
 
 #include "Alignment.h"
 
+Alignment::Alignment(void) : BamTools::BamAlignment() {}
+Alignment::Alignment(BamTools::BamAlignment& other) : BamTools::BamAlignment(other) {}
+
+int Alignment::position(void)
+{
+    return Position + 1;
+}
+
+void Alignment::position(int pos)
+{
+    Position = pos - 1;
+}
+
 bool Alignment::getJunction(GFF::Feature& junction)
 {
     // this all assumes there is only one gap, i.e. only one 'N' CigarOp
@@ -27,7 +40,7 @@ bool Alignment::getJunction(GFF::Feature& junction)
 
     if (gap_len == 0) return false;
 
-    junction.start = Position + len;
+    junction.start = position() + len;
     junction.end = junction.start + gap_len;
 
     return true;

@@ -1,6 +1,8 @@
 #include <vector>
 
+#include "api/BamAlignment.h"
 #include "api/BamAux.h"
+
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
 
@@ -12,10 +14,22 @@ using GFF::Feature;
 using testing::ElementsAre;
 using testing::WhenSorted;
 
+TEST(AlignmentTest, position)
+{
+    BamTools::BamAlignment a;
+    a.Position = 100; // Bamtools uses 0-based positioning
+
+    Alignment b(a);
+    EXPECT_EQ(101, b.position()); // we want 1-based positions, for consistency
+
+    b.position(100);
+    EXPECT_EQ(100, b.position());
+}
+
 TEST(AlignmentTest, getFeature)
 {
     Alignment a;
-    a.Position = 100;
+    a.position(100);
 
     Feature f;
     CigarOp op;
