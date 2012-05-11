@@ -1,8 +1,6 @@
 #include <cmath>
-#include <ctype.h>
 #include <iostream>
 #include <map>
-#include <stdlib.h>
 #include <string>
 #include <vector>
 
@@ -16,6 +14,14 @@ using std::endl;
 using std::vector;
 using std::string;
 
+void diff_signals(vector<double>& a, vector<double>& b, vector<double>& diff)
+{
+    // TODO some check for whether a.size() == b.size()
+
+    for (int i = 0; i < a.size(); i++)
+        diff.push_back(fabs(a.at(i) - b.at(i)));
+}
+
 void comp_coverage(string& id, vector<int>& coverage1, vector<int>& coverage2) {
     vector<double> signal1, signal2, diff;
     int WIN = 20, SLIDE = 10, total_above = 0;
@@ -26,7 +32,7 @@ void comp_coverage(string& id, vector<int>& coverage1, vector<int>& coverage2) {
     gen_signal(coverage2, signal2, WIN, SLIDE);
 
     for (int i = 0; i < signal1.size(); i++) {
-        double sig_diff = abs(signal1.at(i) - signal2.at(i));
+        double sig_diff = fabs(signal1.at(i) - signal2.at(i));
         diff.push_back(sig_diff);
         if (sig_diff > 0.1) total_above++;
     }

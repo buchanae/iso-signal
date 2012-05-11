@@ -13,6 +13,8 @@ using GFF::Feature;
 using std::vector;
 using std::string;
 
+void diff_signals(vector<double>&, vector<double>&, vector<double>&);
+
 void gen_coverage(vector<int>&, vector<Alignment>&, Feature&);
 
 void add_coverage(Feature&, vector<int>&, vector<BamTools::CigarOp>&, int);

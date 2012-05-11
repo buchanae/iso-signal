@@ -30,6 +30,7 @@ if( build_tests )
       tests/JunctionIndex.cpp
       tests/StackReader.cpp
       tests/Alignment.cpp
+      tests/coverage.cpp
     )
     include_directories(
         libs/gmock/include
