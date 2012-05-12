@@ -62,6 +62,8 @@ int main (int argc, char* argv[])
     // TODO: ensure all reference data for BAM files are the same
     // TODO needed? do one coverage file at a time?
 
+    cerr << "Loading the reference GFF" << endl;
+
     // open GFF reference file
     std::ifstream gff_input_stream(gff_file_path.c_str());
     if (!gff_input_stream.is_open())
@@ -74,6 +76,10 @@ int main (int argc, char* argv[])
     vector<Feature> genes;
     vector<Feature> transcripts;
     getGenesAndTranscriptsFromGFF(gff_input_stream, all, genes, transcripts);
+
+    cerr << "Found " << all.size() << " features" << endl;
+    cerr << "Found " << genes.size() << " genes" << endl;
+    cerr << "Found " << transcripts.size() << " transcripts" << endl;
 
     cerr << "Searching reference for splice junctions" << endl;
 
@@ -92,6 +98,8 @@ int main (int argc, char* argv[])
         junction_index.add(juncs.begin(), juncs.end());
     }
 
+    cerr << "Loading splice junctions from stack files" << endl;
+
     // load splice junctions from stack files
     for (vector<string>::iterator it = stack_file_paths.begin();
          it != stack_file_paths.end(); ++it)
@@ -103,10 +111,15 @@ int main (int argc, char* argv[])
             cerr << "Skipping file." << endl;
         } else {
             Feature j;
-            StackReader::getNextFeature(input_stream, j);
-            junction_index.add(j);
+            while (StackReader::getNextFeature(input_stream, j))
+            {
+                junction_index.add(j);
+            }
         }
     }
+
+    cerr << "Found " << junction_index.uniqueCount() << " unique splice junctions" 
+         << endl;
 
     int count = 0;
 

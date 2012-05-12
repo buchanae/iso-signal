@@ -107,4 +107,7 @@ TEST(JunctionIndexTest, unique)
         sources.push_back((*it).source);
     }
     EXPECT_THAT(sources, WhenSorted(ElementsAre("A", "C", "D")));
+
+    // test count()
+    EXPECT_EQ(3, index.uniqueCount());
 }

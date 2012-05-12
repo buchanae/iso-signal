@@ -46,3 +46,8 @@ void JunctionIndex::unique(std::vector<Feature>& juncs)
 {
     std::copy(junctions.begin(), junctions.end(), std::back_inserter(juncs));
 }
+
+int JunctionIndex::uniqueCount(void)
+{
+    return junctions.size();
+}
