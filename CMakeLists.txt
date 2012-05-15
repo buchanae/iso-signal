@@ -32,6 +32,8 @@ if( build_tests )
       tests/StackReader.cpp
       tests/Alignment.cpp
       tests/coverage.cpp
+      tests/BamReader.cpp
+      tests/JunctionFilter.cpp
       tests/helpers.cpp
     )
     add_custom_command(

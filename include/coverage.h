@@ -23,4 +23,13 @@ void comp_coverage(string&, vector<int>&, vector<int>&);
 
 void gen_signal(vector<int>&, vector<double>&, int, int);
 
+class Coverage
+{
+    public:
+        vector<int> data;
+        Coverage(int length);
+        void add(Alignment alignment);
+        void add(int start, int stop);
+};
+
 #endif

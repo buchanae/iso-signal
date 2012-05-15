@@ -25,21 +25,21 @@ bool Alignment::getJunction(GFF::Feature& junction)
     int len = 0;
     int gap_len = 0;
 
-    for (std::vector<CigarOp>::iterator it = CigarData.begin(); 
-         it != CigarData.end(); ++it)
+    for (std::vector<CigarOp>::iterator op = CigarData.begin(); 
+         op != CigarData.end(); ++op)
     {
-        CigarOp op = *it;
-        if (op.Type == 'N')
+        if (op->Type == 'N')
         {
-            gap_len = op.Length;
+            gap_len = op->Length;
             break;
         }
 
-        len += op.Length;
+        len += op->Length;
     }
 
     if (gap_len == 0) return false;
 
+    junction.seqid = RefName;
     junction.start = position() + len - 1;
     junction.end = junction.start + gap_len + 1;
 

@@ -14,6 +14,36 @@ using std::endl;
 using std::vector;
 using std::string;
 
+
+Coverage::Coverage(int length)
+{
+    data = vector<int>(length, 0);
+}
+
+void Coverage::add(Alignment alignment)
+{
+    int pos = alignment.position();
+    for (std::vector<CigarOp>::iterator op = alignment.CigarData.begin(); 
+         op != alignment.CigarData.end(); ++op)
+    {
+        if (op->Type == 'M')
+        {
+            add(pos, pos + op->Length - 1);
+        }
+        pos += op->Length;
+    }
+}
+
+// TODO note about open vs closed interval
+// and 1-based positions
+void Coverage::add(int start, int stop)
+{
+    for (int i = start - 1; i < stop; ++i)
+    {
+        data.at(i) = data.at(i) + 1;
+    }
+}
+
 void diff_signals(vector<double>& a, vector<double>& b, vector<double>& diff)
 {
     // TODO some check for whether a.size() == b.size()

@@ -14,6 +14,12 @@ using GFF::Feature;
 using testing::ElementsAre;
 using testing::WhenSorted;
 
+TEST(AlignmentTest, has_RefName)
+{
+    Alignment a;
+    EXPECT_EQ("", a.RefName);
+}
+
 TEST(AlignmentTest, position)
 {
     BamTools::BamAlignment a;
@@ -42,6 +48,7 @@ TEST(AlignmentTest, getJunction)
     1        10                   31
     */
     Alignment a;
+    a.RefName = "ref";
     a.position(1);
 
     Feature f;
@@ -65,6 +72,7 @@ TEST(AlignmentTest, getJunction)
     a.CigarData.push_back(op);
 
     EXPECT_TRUE(a.getJunction(f));
+    EXPECT_EQ("ref", f.seqid);
     EXPECT_EQ(10, f.start);
     EXPECT_EQ(31, f.end);
 }

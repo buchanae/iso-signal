@@ -35,35 +35,3 @@ void getGenesAndTranscriptsFromGFF(std::istream& gff_input_stream,
     types.type("tRNA", transcripts);
     types.type("pseudogenic_transcript", transcripts);
 }
-
-// TODO note that splice junction alignments are only valid if they're in junctions arg
-void getValidAlignmentsToFeature(Feature& feature,
-                                 BamTools::BamReader& reader,
-                                 JunctionIndex& junction_index,
-                                 vector<Alignment>& alignments)
-{
-    int ref_ID = reader.GetReferenceID(feature.seqid);
-
-    BamTools::BamRegion region;
-    region = BamTools::BamRegion(ref_ID, feature.start, ref_ID, feature.end);
-
-    reader.SetRegion(region);
-
-    Alignment al;
-    while (reader.GetNextAlignment(al))
-    {
-        string ref_name = reader.GetReferenceData().at(al.RefID).RefName;
-
-        Feature junction;
-        junction.seqid = ref_name;
-        if (al.getJunction(junction))
-        {
-            if (junction_index.contains(junction))
-            {
-                alignments.push_back(al);
-            }
-        } else {
-            alignments.push_back(al);
-        }
-    }
-}
