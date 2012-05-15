@@ -1,6 +1,8 @@
 #ifndef _ISOSIGNAL_ALIGNMENT_H
 #define _ISOSIGNAL_ALIGNMENT_H
 
+#include <string>
+
 #include "api/BamAlignment.h"
 
 #include "Feature.h"
@@ -10,6 +12,8 @@ using BamTools::CigarOp;
 class Alignment : public BamTools::BamAlignment
 {
     public:
+        std::string RefName;
+
         Alignment(void);
         Alignment(BamTools::BamAlignment& other);
         bool getJunction(GFF::Feature&);

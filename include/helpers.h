@@ -11,16 +11,20 @@
 
 #include "Alignment.h"
 
+using std::istream;
 using std::vector;
 
-void getGenesAndTranscriptsFromGFF(std::istream& gff_input_stream, 
+void getGenesAndTranscriptsFromGFF(istream& gff_input_stream, 
                                    vector<Feature>& all,
                                    vector<Feature>& genes,
                                    vector<Feature>& transcripts);
 
-void getValidAlignmentsToFeature(Feature& query, 
-                                 BamTools::BamReader& reader,
-                                 JunctionIndex& junction_index,
-                                 vector<Alignment>& valid_alignments);
+void indexJunctionsFromGFF(istream& gff_stream, JunctionIndex& index);
+
+void indexJunctionsFromStack(istream& stack_stream, JunctionIndex& index);
+
+void formatGMBCoverage(Coverage& coverage, std::ostream& coverage_stream);
+
+void formatGMBCoverage(Coverage& coverage, std::string& output);
 
 #endif

@@ -1,11 +1,15 @@
 #include <iostream>
+#include <string>
+#include <sstream>
 #include <vector>
 
 #include "Feature.h"
 #include "Index.h"
 #include "Reader.h"
 
+#include "Coverage.h"
 #include "helpers.h"
+#include "StackReader.h"
 
 using std::vector;
 
@@ -36,34 +40,53 @@ void getGenesAndTranscriptsFromGFF(std::istream& gff_input_stream,
     types.type("pseudogenic_transcript", transcripts);
 }
 
-// TODO note that splice junction alignments are only valid if they're in junctions arg
-void getValidAlignmentsToFeature(Feature& feature,
-                                 BamTools::BamReader& reader,
-                                 JunctionIndex& junction_index,
-                                 vector<Alignment>& alignments)
+void indexJunctionsFromGFF(istream& gff_stream, JunctionIndex& index)
 {
-    int ref_ID = reader.GetReferenceID(feature.seqid);
+    vector<Feature> all;
+    vector<Feature> genes;
+    vector<Feature> transcripts;
+    getGenesAndTranscriptsFromGFF(gff_stream, all, genes, transcripts);
 
-    BamTools::BamRegion region;
-    region = BamTools::BamRegion(ref_ID, feature.start, ref_ID, feature.end);
+    vector<string> exon_types;
+    exon_types.push_back("exon");
+    exon_types.push_back("pseudogenic_exon");
 
-    reader.SetRegion(region);
-
-    Alignment al;
-    while (reader.GetNextAlignment(al))
+    vector<Feature> juncs;
+    for (vector<Feature>::iterator transcript = transcripts.begin(); 
+         transcript != transcripts.end(); ++transcript)
     {
-        string ref_name = reader.GetReferenceData().at(al.RefID).RefName;
+        transcript->spliceJunctions(juncs, exon_types);
+    }
 
-        Feature junction;
-        junction.seqid = ref_name;
-        if (al.getJunction(junction))
+    // TODO optimize to add directly to index
+    index.add(juncs.begin(), juncs.end());
+}
+
+void indexJunctionsFromStack(istream& stack_stream, JunctionIndex& index)
+{
+    Feature j;
+    while (StackReader::getNextFeature(stack_stream, j))
+    {
+        index.add(j);
+    }
+}
+
+void formatGMBCoverage(Coverage& coverage, std::ostream& coverage_stream)
+{
+    for (std::map<string, vector<int> >::iterator it = coverage.coverages.begin();
+         it != coverage.coverages.end(); ++it)
+    {
+        coverage_stream << it->first << "\t" << it->second.size() << std::endl;
+        for (int i = 0; i < it->second.size(); ++i)
         {
-            if (junction_index.contains(junction))
-            {
-                alignments.push_back(al);
-            }
-        } else {
-            alignments.push_back(al);
+            coverage_stream << it->second.at(i) << std::endl;
         }
     }
+}
+
+void formatGMBCoverage(Coverage& coverage, std::string& output)
+{
+    std::stringstream stream;
+    formatGMBCoverage(coverage, stream);
+    output = stream.str();
 }
