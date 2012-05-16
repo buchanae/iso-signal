@@ -78,7 +78,7 @@ int main (int argc, char* argv[])
         return 0;
     }
 
-    cerr << "Loading the reference GFF" << endl;
+    cerr << "Loading the reference GFF." << endl;
 
     // open GFF reference file
     std::ifstream gff_stream(gff_file_path.c_str());
@@ -89,9 +89,12 @@ int main (int argc, char* argv[])
     }
 
     JunctionFilter filter;
+
+    cerr << "Loading splice junctions from reference GFF." << endl;
+
     indexJunctionsFromGFF(gff_stream, filter.junction_index);
 
-    cerr << "Loading splice junctions from stack files" << endl;
+    cerr << "Loading splice junctions from stack files." << endl;
 
     // load splice junctions from stack files
     for (vector<string>::iterator it = stack_file_paths.begin();
@@ -109,7 +112,12 @@ int main (int argc, char* argv[])
         }
     }
 
+    cerr << "Found " << filter.junction_index.uniqueCount();
+    cerr << " unique splice junctions." << endl;
+
     Coverage coverage;
+
+    cerr << "Reading alignments and building coverage." << endl;
 
     // initialize references
     BamTools::RefVector ref_vec = reader.GetReferenceData();
@@ -127,6 +135,8 @@ int main (int argc, char* argv[])
     }
 
     reader.Close();
+
+    cerr << "Writing coverage file." << endl;
 
     formatGMBCoverage(coverage, *output_stream);
 
