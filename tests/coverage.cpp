@@ -4,12 +4,13 @@
 #include "gmock/gmock.h"
 
 #include "Alignment.h"
-#include "coverage.h"
+#include "Coverage.h"
 
 using GFF::Feature;
 using testing::DoubleEq;
 using testing::ElementsAre;
 
+/*
 TEST(CoverageTest, diff_signals)
 {
     vector<double> a, b, diff;
@@ -24,24 +25,52 @@ TEST(CoverageTest, diff_signals)
 
     EXPECT_THAT(diff, ElementsAre(DoubleEq(1.2), DoubleEq(3.2)));
 }
+*/
 
-TEST(CoverageTest, Coverage_init)
+TEST(CoverageTest, Coverage_setMinReferenceLength)
 {
-    Coverage c(10);
-    EXPECT_THAT(c.data, ElementsAre(0, 0, 0, 0, 0, 0, 0, 0, 0, 0));
+    Coverage c;
+
+    EXPECT_EQ(0, c.coverages.size());
+    c.setMinReferenceLength("foo", 10);
+
+    EXPECT_EQ(1, c.coverages.size());
+    EXPECT_THAT(c.coverages.find("foo")->second,
+                ElementsAre(0, 0, 0, 0, 0, 0, 0, 0, 0, 0));
+
+    c.setMinReferenceLength("foo", 5);
+    EXPECT_THAT(c.coverages.find("foo")->second,
+                ElementsAre(0, 0, 0, 0, 0, 0, 0, 0, 0, 0));
 }
 
-TEST(CoverageTest, Coverage_add_position)
+TEST(CoverageTest, Coverage_add)
 {
-    Coverage c(10);
-    c.add(3, 7);
+    Coverage c;
+    c.add("foo", 2, 3);
 
-    EXPECT_THAT(c.data, ElementsAre(0, 0, 1, 1, 1, 1, 1, 0, 0, 0));
+    EXPECT_THAT(c.coverages.find("foo")->second,
+                ElementsAre(0, 1, 1, 1));
+
+    c.add("foo", 2, 2);
+
+    EXPECT_THAT(c.coverages.find("foo")->second,
+                ElementsAre(0, 2, 2, 1));
+
+    c.add("foo", 6, 2);
+
+    EXPECT_THAT(c.coverages.find("foo")->second,
+                ElementsAre(0, 2, 2, 1, 0, 1, 1));
+
+    c.setMinReferenceLength("foo", 10);
+
+    EXPECT_THAT(c.coverages.find("foo")->second,
+                ElementsAre(0, 2, 2, 1, 0, 1, 1, 0, 0, 0));
 }
 
 TEST(CoverageTest, Coverage_add_alignment)
 {
     Alignment a;
+    a.RefName = "foo";
     a.position(3);
 
     CigarOp op;
@@ -59,8 +88,8 @@ TEST(CoverageTest, Coverage_add_alignment)
     op.Length = 2;
     a.CigarData.push_back(op);
 
-    Coverage c(10);
+    Coverage c;
     c.add(a);
 
-    EXPECT_THAT(c.data, ElementsAre(0, 0, 1, 1, 0, 0, 0, 1, 1, 0));
+    EXPECT_THAT(c.coverages.find("foo")->second, ElementsAre(0, 0, 1, 1, 0, 0, 0, 1, 1));
 }

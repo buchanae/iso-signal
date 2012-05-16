@@ -1,6 +1,7 @@
 #ifndef _ISOSIGNAL_COVERAGE_H
 #define _ISOSIGNAL_COVERAGE_H
 
+#include <map>
 #include <string>
 #include <vector>
 
@@ -13,23 +14,15 @@ using GFF::Feature;
 using std::vector;
 using std::string;
 
-void diff_signals(vector<double>&, vector<double>&, vector<double>&);
-
-void gen_coverage(vector<int>&, vector<Alignment>&, Feature&);
-
-void add_coverage(Feature&, vector<int>&, vector<BamTools::CigarOp>&, int);
-
-void comp_coverage(string&, vector<int>&, vector<int>&);
-
-void gen_signal(vector<int>&, vector<double>&, int, int);
-
 class Coverage
 {
     public:
-        vector<int> data;
-        Coverage(int length);
-        void add(Alignment alignment);
-        void add(int start, int stop);
+        std::map<std::string, vector<int> > coverages;
+
+        void add(Alignment& alignment);
+        void add(string ref_name, int start, int length);
+
+        void setMinReferenceLength(string name, int length);
 };
 
 #endif

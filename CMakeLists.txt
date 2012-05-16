@@ -11,9 +11,8 @@ set(
     src/JunctionIndex.cpp
     src/StackReader.cpp
     src/Alignment.cpp
-    src/coverage.cpp
+    src/Coverage.cpp
     src/helpers.cpp
-    src/CoverageBuilder.cpp
 )
 set(
     LIBS
@@ -32,7 +31,7 @@ if( build_tests )
       tests/JunctionIndex.cpp
       tests/StackReader.cpp
       tests/Alignment.cpp
-      tests/coverage.cpp
+      tests/Coverage.cpp
       tests/BamReader.cpp
       tests/JunctionFilter.cpp
       tests/helpers.cpp

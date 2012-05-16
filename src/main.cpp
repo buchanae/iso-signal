@@ -3,17 +3,14 @@
 #include <vector>
 
 #include <tclap/CmdLine.h>
-#include <api/BamReader.h>
 
 #include "Index.h"
 #include "Feature.h"
 
 #include "Alignment.h"
-#include "coverage.h"
-#include "CoverageBuilder.h"
+#include "BamReader.h"
+#include "Coverage.h"
 #include "JunctionFilter.h"
-#include "JunctionIndex.h"
-#include "StackReader.h"
 #include "helpers.h"
 
 #define VERSION "0.1"
@@ -60,15 +57,15 @@ int main (int argc, char* argv[])
     cerr << "Loading the reference GFF" << endl;
 
     // open GFF reference file
-    std::ifstream gff_input_stream(gff_file_path.c_str());
-    if (!gff_input_stream.is_open())
+    std::ifstream gff_stream(gff_file_path.c_str());
+    if (!gff_stream.is_open())
     {
         cerr << "Error opening reference GFF file. Exiting." << endl;
         return 0;
     }
 
-    CoverageBuilder builder;
-    builder.addJunctionsFromGFF(gff_input_stream);
+    JunctionFilter filter;
+    indexJunctionsFromGFF(gff_stream, filter.junction_index);
 
     cerr << "Loading splice junctions from stack files" << endl;
 
@@ -76,20 +73,36 @@ int main (int argc, char* argv[])
     for (vector<string>::iterator it = stack_file_paths.begin();
          it != stack_file_paths.end(); ++it)
     {
-        std::ifstream input_stream(it->c_str());
-        if (!input_stream.is_open())
+        std::ifstream stack_stream(it->c_str());
+        if (!stack_stream.is_open())
         {
             cerr << "Error opening stack file: " << *it << endl;
             cerr << "Skipping file." << endl;
-        } else {
-            builder.addJunctionsFromStack(input_stream);
+        }
+        else
+        {
+            indexJunctionsFromStack(stack_stream, filter.junction_index);
         }
     }
 
-    builder.addCoverageFromBam(reader);
-    reader.Close();
+    Coverage coverage;
 
-    cout << builder.coverageString();
+    // initialize references
+    BamTools::RefVector ref_vec = reader.GetReferenceData();
+    for (int i = 0; i < ref_vec.size(); ++i)
+    {
+        BamTools::RefData data = ref_vec.at(i);
+        coverage.setMinReferenceLength(data.RefName, data.RefLength);
+    }
+
+    // read and filter alignments, adding to coverages
+    Alignment al;
+    while (reader.GetNextAlignment(al) && filter(al))
+    {
+        coverage.add(al);
+    }
+
+    reader.Close();
 
     return 0;
 }
