@@ -97,9 +97,9 @@ int main (int argc, char* argv[])
 
     // read and filter alignments, adding to coverages
     Alignment al;
-    while (reader.GetNextAlignment(al) && filter(al))
+    while (reader.GetNextAlignment(al))
     {
-        coverage.add(al);
+        if (filter(al)) coverage.add(al);
     }
 
     reader.Close();

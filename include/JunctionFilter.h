@@ -3,8 +3,6 @@
 
 #include <string>
 
-#include "api/BamAux.h"
-
 #include "Alignment.h"
 #include "Feature.h"
 #include "JunctionIndex.h"
