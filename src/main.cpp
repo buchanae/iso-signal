@@ -35,12 +35,12 @@ int main (int argc, char* argv[])
 
         TCLAP::MultiArg<string> inputSTACKS("s", "stack-file", "Stack file", false, "foo.stacks", cmd);
         TCLAP::ValueArg<string> inputGFF("g", "gff-file", "Input GFF file", true, "", "input_file.gff", cmd);
-        TCLAP::ValueArg<string> inputBAM1("b", "bam-file", "Input BAM file", true, "", "input_file.bam", cmd);
+        TCLAP::ValueArg<string> inputBAM("b", "bam-file", "Input BAM file", true, "", "input_file.bam", cmd);
 
         cmd.parse(argc, argv);
 
         gff_file_path = inputGFF.getValue();
-        bam_file_path = inputBAM1.getValue();
+        bam_file_path = inputBAM.getValue();
         stack_file_paths = inputSTACKS.getValue();
 
     } catch (TCLAP::ArgException &e) {
@@ -103,6 +103,8 @@ int main (int argc, char* argv[])
     }
 
     reader.Close();
+
+    formatGMBCoverage(coverage, cout);
 
     return 0;
 }
