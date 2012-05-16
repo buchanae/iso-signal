@@ -13,6 +13,7 @@ set(
     src/Alignment.cpp
     src/coverage.cpp
     src/helpers.cpp
+    src/CoverageBuilder.cpp
 )
 set(
     LIBS

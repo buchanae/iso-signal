@@ -3,6 +3,8 @@
 
 #include "api/BamReader.h"
 
+#include "Alignment.h"
+
 class BamReader : public BamTools::BamReader
 {
     public:

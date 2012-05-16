@@ -10,6 +10,7 @@
 
 #include "Alignment.h"
 #include "coverage.h"
+#include "CoverageBuilder.h"
 #include "JunctionFilter.h"
 #include "JunctionIndex.h"
 #include "StackReader.h"
@@ -49,8 +50,9 @@ int main (int argc, char* argv[])
         cerr << "Error: " << e.error() << " " << e.argId() << endl;
     }
 
-    BamTools::BamReader reader;
-    if(!reader.Open(bam_file_path)) {
+    BamReader reader;
+    if(!reader.Open(bam_file_path))
+    {
         cerr << "Error opening the bam file. Exiting." << endl;
         return 0;
     }
@@ -65,31 +67,8 @@ int main (int argc, char* argv[])
         return 0;
     }
 
-    vector<Feature> all;
-    vector<Feature> genes;
-    vector<Feature> transcripts;
-    getGenesAndTranscriptsFromGFF(gff_input_stream, all, genes, transcripts);
-
-    cerr << "Found " << all.size() << " features" << endl;
-    cerr << "Found " << genes.size() << " genes" << endl;
-    cerr << "Found " << transcripts.size() << " transcripts" << endl;
-
-    cerr << "Searching reference for splice junctions" << endl;
-
-    vector<string> exon_types;
-    exon_types.push_back("exon");
-    exon_types.push_back("pseudogenic_exon");
-
-    JunctionFilter filter;
-
-    for (vector<Feature>::iterator transcript = transcripts.begin(); 
-         transcript != transcripts.end(); ++transcript)
-    {
-        vector<Feature> juncs;
-        transcript->spliceJunctions(juncs, exon_types);
-        // TODO optimize to add directly to index
-        filter.junction_index.add(juncs.begin(), juncs.end());
-    }
+    CoverageBuilder builder;
+    builder.addJunctionsFromGFF(gff_input_stream);
 
     cerr << "Loading splice junctions from stack files" << endl;
 
@@ -97,37 +76,20 @@ int main (int argc, char* argv[])
     for (vector<string>::iterator it = stack_file_paths.begin();
          it != stack_file_paths.end(); ++it)
     {
-        std::ifstream input_stream((*it).c_str());
+        std::ifstream input_stream(it->c_str());
         if (!input_stream.is_open())
         {
             cerr << "Error opening stack file: " << *it << endl;
             cerr << "Skipping file." << endl;
         } else {
-            Feature j;
-            while (StackReader::getNextFeature(input_stream, j))
-            {
-                filter.junction_index.add(j);
-            }
+            builder.addJunctionsFromStack(input_stream);
         }
     }
 
-    cerr << "Found " << filter.junction_index.uniqueCount() << " unique splice junctions" 
-         << endl;
-
-    // initialize Coverage objects
-    std::map<int, Coverage* > coverages;
-    BamTools::RefVector ref_vec = reader.GetReferenceData();
-    for (int i = 0; i < ref_vec.size(); ++i)
-    {
-        coverages.insert(std::make_pair(i, new Coverage(ref_vec.at(i).RefLength)));
-    }
-
-    Alignment al;
-    while (reader.GetNextAlignment(al) && filter(al))
-    {
-        coverages[al.RefID]->add(al);
-    }
+    builder.addCoverageFromBam(reader);
     reader.Close();
+
+    cout << builder.coverageString();
 
     return 0;
 }
