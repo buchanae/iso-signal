@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 #include <map>
 #include <vector>
 
@@ -25,7 +26,7 @@ using std::vector;
 
 int main (int argc, char* argv[])
 {
-    string gff_file_path, bam_file_path;
+    string gff_file_path, bam_file_path, output_file_path;
     vector<string> stack_file_paths;
 
     // TODO allow multiple bam files?
@@ -36,15 +37,38 @@ int main (int argc, char* argv[])
         TCLAP::MultiArg<string> inputSTACKS("s", "stack-file", "Stack file", false, "foo.stacks", cmd);
         TCLAP::ValueArg<string> inputGFF("g", "gff-file", "Input GFF file", true, "", "input_file.gff", cmd);
         TCLAP::ValueArg<string> inputBAM("b", "bam-file", "Input BAM file", true, "", "input_file.bam", cmd);
+        TCLAP::ValueArg<string> outputFileArg("o", "output", "Output file", true, "", "output.coverage", cmd);
 
         cmd.parse(argc, argv);
 
         gff_file_path = inputGFF.getValue();
         bam_file_path = inputBAM.getValue();
         stack_file_paths = inputSTACKS.getValue();
+        output_file_path = outputFileArg.getValue();
 
     } catch (TCLAP::ArgException &e) {
         cerr << "Error: " << e.error() << " " << e.argId() << endl;
+    }
+
+    std::ostream* output_stream;
+    std::ofstream output_file_stream;
+
+    if (output_file_path == "-")
+    {
+        cerr << "Outputting to standard out." << endl;
+        output_stream = &cout;
+    }
+    else
+    {
+        output_file_stream.open(output_file_path.c_str(),
+                                std::ios::out | std::ios::trunc);
+
+        if (!output_file_stream.is_open())
+        {
+            cerr << "Error opening output file. Exiting." << endl;
+            return 0;
+        }
+        output_stream = &output_file_stream;
     }
 
     BamReader reader;
@@ -104,7 +128,12 @@ int main (int argc, char* argv[])
 
     reader.Close();
 
-    formatGMBCoverage(coverage, cout);
+    formatGMBCoverage(coverage, *output_stream);
+
+    if (output_file_stream.is_open())
+    {
+        output_file_stream.close();
+    }
 
     return 0;
 }
