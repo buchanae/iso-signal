@@ -1,3 +1,5 @@
+#include <sstream>
+#include <string>
 #include <vector>
 
 #include "gtest/gtest.h"
@@ -92,4 +94,38 @@ TEST(CoverageTest, Coverage_add_alignment)
     c.add(a);
 
     EXPECT_THAT(c.coverages.find("foo")->second, ElementsAre(0, 0, 1, 1, 0, 0, 0, 1, 1));
+}
+
+TEST(HelpersTest, loadCoverage)
+{
+    Coverage c;
+
+    std::stringstream coverage_str("bar\t6\n1\n1\n1\n0\n0\n0\nfoo\t5\n0\n0\n1\n1\n0\n");
+    loadCoverage(coverage_str, c);
+
+    EXPECT_THAT(c.coverages.find("bar")->second, ElementsAre(1, 1, 1, 0, 0, 0));
+    EXPECT_THAT(c.coverages.find("foo")->second, ElementsAre(0, 0, 1, 1, 0));
+}
+
+TEST(HelpersTest, formatGMBCoverage)
+{
+    // Note that references are output in sorted order on reference name
+
+    Coverage c;
+    c.setMinReferenceLength("foo", 5);
+    c.setMinReferenceLength("bar", 6);
+    c.add("foo", 3, 2);
+    c.add("bar", 1, 3);
+
+    std::string expected = "bar\t6\n1\n1\n1\n0\n0\n0\nfoo\t5\n0\n0\n1\n1\n0\n";
+
+    std::stringstream out;
+    formatGMBCoverage(c, out);
+
+    EXPECT_EQ(expected, out.str());
+
+    std::string out_string;
+    formatGMBCoverage(c, out_string);
+
+    EXPECT_EQ(expected, out_string);
 }

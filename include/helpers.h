@@ -23,8 +23,4 @@ void indexJunctionsFromGFF(istream& gff_stream, JunctionIndex& index);
 
 void indexJunctionsFromStack(istream& stack_stream, JunctionIndex& index);
 
-void formatGMBCoverage(Coverage& coverage, std::ostream& coverage_stream);
-
-void formatGMBCoverage(Coverage& coverage, std::string& output);
-
 #endif

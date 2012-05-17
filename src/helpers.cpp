@@ -1,6 +1,5 @@
 #include <iostream>
 #include <string>
-#include <sstream>
 #include <vector>
 
 #include "Feature.h"
@@ -69,24 +68,4 @@ void indexJunctionsFromStack(istream& stack_stream, JunctionIndex& index)
     {
         index.add(j);
     }
-}
-
-void formatGMBCoverage(Coverage& coverage, std::ostream& coverage_stream)
-{
-    for (std::map<string, vector<int> >::iterator it = coverage.coverages.begin();
-         it != coverage.coverages.end(); ++it)
-    {
-        coverage_stream << it->first << "\t" << it->second.size() << std::endl;
-        for (int i = 0; i < it->second.size(); ++i)
-        {
-            coverage_stream << it->second.at(i) << std::endl;
-        }
-    }
-}
-
-void formatGMBCoverage(Coverage& coverage, std::string& output)
-{
-    std::stringstream stream;
-    formatGMBCoverage(coverage, stream);
-    output = stream.str();
 }
