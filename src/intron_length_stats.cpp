@@ -142,7 +142,7 @@ int main (int argc, char* argv[])
 
     for (int i = 0; i < percent_counts.size(); ++i) 
     {
-        cerr << i << "\t" << percent_counts.at(i) << endl;
+        output_stream << i << "\t" << percent_counts.at(i) << endl;
     }
 
     if (output_file_stream.is_open())

@@ -31,7 +31,7 @@ int main (int argc, char* argv[])
     {
         TCLAP::CmdLine cmd("Program description", ' ', VERSION);
 
-        string_arg coverageFileArg("c", "coverage", "Coverage file", false, "",
+        string_arg coverageFileArg("c", "coverage", "Coverage file", true, "",
                                    "foo.coverage", cmd);
 
         string_arg gffFileArg("g", "gff", "GFF file", true, "", "reference.gff", cmd);
@@ -167,8 +167,9 @@ int main (int argc, char* argv[])
             {
                 string ID;
                 transcript->attributes.get("ID", ID);
-                cout << ID << "-intron-" << j + 1 << "\t" << percent_of_expected;
-                cout << endl;
+                (*output_stream) << ID << "-intron-" << j + 1;
+                (*output_stream) << "\t" << percent_of_expected;
+                (*output_stream) << endl;
             }
         }
     }
