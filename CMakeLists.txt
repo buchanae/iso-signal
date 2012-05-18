@@ -20,8 +20,14 @@ set(
     /Users/abuchanan/chang/duncan/build/libduncan.a
     /Users/abuchanan/bamtools/lib/libbamtools.dylib
 )
-add_executable( iso_signal ${SRCS} src/main.cpp)
-target_link_libraries( iso_signal ${LIBS} )
+#add_executable( iso_signal ${SRCS} src/main.cpp)
+#target_link_libraries( iso_signal ${LIBS} )
+
+#add_executable( intron_length_stats ${SRCS} src/intron_length_stats.cpp)
+#target_link_libraries( intron_length_stats ${LIBS} )
+
+add_executable( feature_coverage ${SRCS} src/feature_coverage.cpp)
+target_link_libraries( feature_coverage ${LIBS} )
 
 option( build_tests "Build tests" ON )
 if( build_tests )
@@ -34,7 +40,7 @@ if( build_tests )
       tests/Coverage.cpp
       tests/BamReader.cpp
       tests/JunctionFilter.cpp
-      tests/helpers.cpp
+#      tests/helpers.cpp
     )
     add_custom_command(
         OUTPUT dummies

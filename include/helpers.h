@@ -23,4 +23,10 @@ void indexJunctionsFromGFF(istream& gff_stream, JunctionIndex& index);
 
 void indexJunctionsFromStack(istream& stack_stream, JunctionIndex& index);
 
+void indexJunctionsFromTranscripts(vector<Feature>& transcripts, JunctionIndex& index);
+
+bool isTranscriptType(Feature& f);
+
+bool isExonType(Feature& f);
+
 #endif

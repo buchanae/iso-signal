@@ -12,6 +12,7 @@
 
 using std::vector;
 
+/*
 void getGenesAndTranscriptsFromGFF(std::istream& gff_input_stream, 
                                    vector<Feature>& all,
                                    vector<Feature>& genes,
@@ -45,7 +46,11 @@ void indexJunctionsFromGFF(istream& gff_stream, JunctionIndex& index)
     vector<Feature> genes;
     vector<Feature> transcripts;
     getGenesAndTranscriptsFromGFF(gff_stream, all, genes, transcripts);
+    indexJunctionsFromTranscripts(transcripts, index);
+}
 
+void indexJunctionsFromTranscripts(vector<Feature>& transcripts, JunctionIndex& index)
+{
     vector<string> exon_types;
     exon_types.push_back("exon");
     exon_types.push_back("pseudogenic_exon");
@@ -60,6 +65,7 @@ void indexJunctionsFromGFF(istream& gff_stream, JunctionIndex& index)
     // TODO optimize to add directly to index
     index.add(juncs.begin(), juncs.end());
 }
+*/
 
 void indexJunctionsFromStack(istream& stack_stream, JunctionIndex& index)
 {
@@ -68,4 +74,16 @@ void indexJunctionsFromStack(istream& stack_stream, JunctionIndex& index)
     {
         index.add(j);
     }
+}
+
+bool isTranscriptType(Feature& f)
+{
+    return f.type == "mRNA" || f.type == "mRNA_TE_GENE" || f.type == "ncRNA"
+        || f.type == "miRNA" || f.type == "snoRNA" || f.type == "snRNA"
+        || f.type == "rRNA" || f.type == "tRNA" || f.type == "pseudogenic_transcript";
+}
+
+bool isExonType(Feature& f)
+{
+    return f.type == "exon" || f.type == "pseudogenic_exon";
 }
