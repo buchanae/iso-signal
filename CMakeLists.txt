@@ -1,11 +1,16 @@
 cmake_minimum_required( VERSION 2.6 )
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 project( iso_signal )
 
-include_directories(
-    include
-    /Users/abuchanan/chang/duncan/include
-    /Users/abuchanan/bamtools/include
-)
+find_package( bamtools REQUIRED )
+include_directories( ${bamtools_INCLUDE_DIR} )
+
+message(STATUS ${bamtools_LIBRARY})
+
+find_package( duncan REQUIRED )
+include_directories( ${duncan_INCLUDE_DIR} )
+
+include_directories( include )
 set( 
     SRCS
     src/JunctionIndex.cpp
@@ -16,9 +21,8 @@ set(
 )
 set(
     LIBS
-    uriparser
-    /Users/abuchanan/chang/duncan/build/libduncan.a
-    /Users/abuchanan/bamtools/lib/libbamtools.dylib
+    ${duncan_LIBRARY}
+    ${bamtools_LIBRARY}
 )
 add_executable( iso_signal ${SRCS} src/main.cpp)
 target_link_libraries( iso_signal ${LIBS} )
@@ -66,5 +70,4 @@ if( build_tests )
         ${LIBS}
         gmock
     )
-    add_test( all-tests tests )
 endif()
